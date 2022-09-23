@@ -1,0 +1,90 @@
+{
+"organization": "ООО Клевер",
+"shop": "м-н Макси Детство",
+"date": "22.09.22",
+"till": [
+{
+"change_sum": 1529,
+"pay_cash": 3051,
+"pay_cashless": 18996,
+"pay_sbp": 857,
+"refund_cash": 0,
+"refund_cashless": 0,
+"refund_sbp": 857,
+"pay_gift_certificate": 500,
+"sales_gift_certificate": 500,
+"revenue": 24433,
+"sales_items": 24433
+}
+,
+{
+"change_sum": 0,
+"pay_cash": 0,
+"pay_cashless": 0,
+"pay_sbp": 0,
+"refund_cash": 0,
+"refund_cashless": 0,
+"refund_sbp": 0,
+"pay_gift_certificate": 0,
+"sales_gift_certificate": 0,
+"revenue": 0,
+"sales_items": 0
+}
+,
+{
+"change_sum": 0,
+"pay_cash": 0,
+"pay_cashless": 0,
+"pay_sbp": 0,
+"refund_cash": 0,
+"refund_cashless": 0,
+"refund_sbp": 0,
+"pay_gift_certificate": 0,
+"sales_gift_certificate": 0,
+"revenue": 0,
+"sales_items": 0
+}
+,
+{
+"change_sum": 0,
+"pay_cash": 0,
+"pay_cashless": 0,
+"pay_sbp": 0,
+"refund_cash": 0,
+"refund_cashless": 0,
+"refund_sbp": 0,
+"pay_gift_certificate": 0,
+"sales_gift_certificate": 0,
+"revenue": 0,
+"sales_items": 0
+}
+,
+{
+"change_sum": 0,
+"pay_cash": 0,
+"pay_cashless": 0,
+"pay_sbp": 0,
+"refund_cash": 0,
+"refund_cashless": 0,
+"refund_sbp": 0,
+"pay_gift_certificate": 0,
+"sales_gift_certificate": 0,
+"revenue": 0,
+"sales_items": 0
+}
+,
+{
+"change_sum": 0,
+"pay_cash": 0,
+"pay_cashless": 0,
+"pay_sbp": 0,
+"refund_cash": 0,
+"refund_cashless": 0,
+"refund_sbp": 0,
+"pay_gift_certificate": 0,
+"sales_gift_certificate": 0,
+"revenue": 0,
+"sales_items": 0
+}
+]
+}
