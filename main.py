@@ -3,6 +3,7 @@ import json
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import cm, mm
 import win32print
 import win32api
@@ -11,13 +12,13 @@ from os import remove as osrem
 import glob
 import time
 from sys import exit
+from typing import List
 
 class Till(object):
     """
     класс наших касс для размещения на pdf
     """
-    def __init__(self, x: int = 0, y: int = 0, org: str = '', i_font: int = 12, i_width:int = 55,
-                 shop: str = '', i_date: str = '01.01.2022', i_till: dict = {}):
+    def __init__(self, org: str = '', shop: str = '', i_date: str = '01.01.2022', i_till: dict = {}):
         """
         param x: int координата х начала нашего объекта
         param y: int кордината y начала нашего объекта
@@ -29,10 +30,12 @@ class Till(object):
         объект кассы будет инициализироваться
         координатами и строками с данными
         """
-        self.x = x  #кордината x начала нашего объекта
-        self.y = y  #кордината y начала нашего объекта
-        self.i_font = i_font  #шрифт
-        self.column_width = i_width  #ширина
+        # x: int = 0, y: int = 0, i_font: int = 12, i_width: int = 55,
+        # self.x = x  #кордината x начала нашего объекта
+        # self.y = y  #кордината y начала нашего объекта
+        # self.i_font = i_font  #шрифт
+        # self.column_width = i_width  #ширина
+
         self.org = org  #строка с организацией
         self.shop = shop  #строка с названием магазина
         self.date = i_date  #строка с датой
@@ -56,7 +59,30 @@ class Till(object):
         self.remaining_money = i_till.get('remaining_money', ' ')  #остаток денег в кассе
         self.cashier = i_till.get('cashier', ' ')  #кассир
 
-        pass
+def make_pdf_page(c):
+        """
+        функция создания объекта pdf страницы
+        :param c: объект pdf
+        :param qr_data: str строка c QR кодом
+        :param vtext: str строка с текстом на ценнике
+        :param vtext_price: str строка с ценой
+        :param shop: str строка с названием магазина
+        cross_out: bool флаг зачернутый текст будет или нет
+        :return: file
+        """
+        pdfmetrics.registerFont(TTFont('Arial', 'Arial.ttf'))
+        pdfmetrics.registerFont(TTFont('ArialBold', 'arialbd.ttf'))
+        c_width = c.__dict__['_pagesize'][0]
+        c_height = c.__dict__['_pagesize'][1]
+        vtext_font_size = 12
+        c.setFont('Arial', vtext_font_size)
+        pole = 15 * mm
+        ytext = c_height - vtext_font_size * 1.5
+        vtext = 'Юрлицо'
+        ytext = text_on_page(c, vtext=vtext, vtext_font_size=vtext_font_size, xstart=pole, ystart=c_height - pole,
+                             xfinish=pole + 55 * mm)
+        c.save()
+
 
 def del_pdf_in_folder(i_path_pdf):
     """
@@ -154,105 +180,30 @@ def text_on_page(canvs, vtext: str = 'Test', vtext_font_size: int = 10, xstart: 
 
 # def make_pdf_page(c, qr_data: str = '99999', vtext: str = 'zaglushka', vtext_price: str = '000000',
 #                   shop: str = 'not shop', sale='00000'):
-def make_pdf_page(c, price_tag_dict: dict = {}):
-    """
-    функция создания объекта pdf страницы
-    :param c: объект pdf
-    :param qr_data: str строка c QR кодом
-    :param vtext: str строка с текстом на ценнике
-    :param vtext_price: str строка с ценой
-    :param shop: str строка с названием магазина
-    cross_out: bool флаг зачернутый текст будет или нет
-    :return: file
-    """
-    cross_out = False
-    pdfmetrics.registerFont(TTFont('Arial', 'Arial.ttf'))
-    pdfmetrics.registerFont(TTFont('ArialBold', 'arialbd.ttf'))
-    c_width = c.__dict__['_pagesize'][0]
-    c_height = c.__dict__['_pagesize'][1]
-    vtext_font_size = 10
-    c.setFont('Arial', vtext_font_size)
-    qr_width = qr_height = c_width // 3
-    pole = 4 * mm
-    # image qr-code
-    qr_data = price_tag_dict.get('qr', None)
-    c.drawInlineImage(qrcode.make(qr_data), c_width - qr_width - pole, c_height - qr_height, width=qr_width,
-                      height=qr_height)
-    c.rect(c_width - qr_width - pole, c_height - qr_height, qr_width, qr_height, fill=0)
-    # image qr-code
-    ytext = c_height - vtext_font_size * 1.5
-    # image name of vendor code
-    vtext = price_tag_dict.get('name', None)
-    ytext = text_on_page(c, vtext=vtext, vtext_font_size=vtext_font_size, xstart=vtext_font_size, ystart=ytext,
-                         xfinish=c_width - (qr_width + 20 + pole), cross_out=cross_out)
-    # image name of vendor code
-    # image sale
-    sale = price_tag_dict.get('sale', 0)
-    price_font_size = 16
-    ytext = ytext - price_font_size * 3 + 1 * mm
-    if sale == '':
-        sale = '0.00'
-    if float(sale) != 0:
-        c.setFont('Arial', price_font_size)
-        # ytext = ytext - price_font_size * 3
-        xs = pole - 2 * mm
-        text_on_page(c, vtext=sale + 'р.', vtext_font_size=price_font_size, xstart=xs, ystart=ytext,
-                     xfinish=c_width, cross_out=cross_out)
-    # image sale
-    # image price
-    vtext_price = price_tag_dict.get('price', None)
-    if float(sale) != 0:
-        # price_font_size = 20
-        cross_out = True
-    c.setFont('Arial', price_font_size)
-    xs = 29 * mm
-    text_on_page(c, vtext=vtext_price + 'р.', vtext_font_size=price_font_size, xstart=xs, ystart=ytext,
-                 xfinish=c_width, cross_out=cross_out)
-    # image price
-    # image name of shop
-    # shop больше не печатаем
-    # vtext_shop = 'Цена за 1 шт усл. ' + shop
-    # shop_font_size = 6
-    # c.setFont('ArialBold', shop_font_size)
-    # # image name of shop
-    # text_on_page(c, vtext=vtext_shop, vtext_font_size=shop_font_size, xstart=shop_font_size, ystart=shop_font_size * 2,
-    #              xfinish=c_width - (qr_width + 20))
-    # текст qr кода
-    qr_font_size = 6
-    c.setFont('Arial', qr_font_size)
-    text_on_page(c, vtext=qr_data, vtext_font_size=qr_font_size, xstart=c_width - qr_width - pole,
-                 ystart=qr_height - qr_font_size, xfinish=c_width - pole)
-    c.save()
+def make_list_of_till(i_path: str = 'r:\\', i_fname: str = 'hoznuzhdi.json') -> List[Till]:
+    o_list = []
+    with open(i_path+i_fname) as json_file:
+        data = json.load(json_file)
+    print(data)
+    for elem in data['till']:
+        if elem['sales_items'] != 0 and elem['change_sum'] != 0:
+            o_list.append(Till(org=data['organization'], shop=data['shop'], i_date=data['date'], i_till=elem))
+    return o_list
 
-
-widthPage = 6 * cm
-heightPage = 4 * cm
 
 
 def main():
     i_path = 'r:\\'
     i_name = 'hoznuzhdi.json'
     del_pdf_in_folder(i_path)
-    with open(i_path+i_name) as json_file:
-        data = json.load(json_file)
-    print(data)
+    list_shop = make_list_of_till(i_path=i_path, i_fname=i_name)
+    print(list_shop)
+    pdf_canvas = canvas.Canvas('r:\\hoznuzhdi.pdf', pagesize=landscape(A4))
+    make_pdf_page(pdf_canvas)
+    # pdf_canvas = canvas.Canvas('r:\\hoznuzhdi.pdf', pagesize=landscape(A4))
+    # pdf_canvas.drawString(100, 100, 'jkjkjkj')
+    # pdf_canvas.save()
 
-# 170.0787401574803
-# 113.38582677165354
-# price_tag = [
-#     {
-#     'qr': '201760115211966201760115211966',
-#     'name': 'Zen Водолазка муж.73300дл.р(46-52)охра; 50',
-#     'price': '21799',
-#     'shop': 'ЕКБ Академический'
-#     },
-#     {
-#     'qr': '201760115211966201111111111111',
-#     'name': 'YAX Джемпер жен.73300дл.р(46-52)раха; 10',
-#     'price': '199',
-#     'shop': 'ЕКБ Академический'
-#     }
-# ]
 
 error = main()
 exit(error)
