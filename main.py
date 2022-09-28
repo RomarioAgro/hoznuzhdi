@@ -5,6 +5,9 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import cm, mm
+from reportlab.platypus import Paragraph, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
 import win32print
 import win32api
 from os.path import isfile
@@ -18,7 +21,48 @@ class Till(object):
     """
     класс наших касс для размещения на pdf
     """
-    def __init__(self, org: str = '', shop: str = '', i_date: str = '01.01.2022', i_till: dict = {}):
+    # def __init__(self, i_till: dict = {}):
+    #     """
+    #     param x: int координата х начала нашего объекта
+    #     param y: int кордината y начала нашего объекта
+    #     param org: str строка с организацией
+    #     param i_font: int шрифт текста в нашем объекте
+    #     param i_width:int ширина объекта
+    #     param i_date: str дата в текстовом виде, строка
+    #     param i_till: dict словарь с остальными строками объекта
+    #     объект кассы будет инициализироваться
+    #     координатами и строками с данными
+    #     """
+    #     # x: int = 0, y: int = 0, i_font: int = 12, i_width: int = 55,
+    #     # self.x = x  #кордината x начала нашего объекта
+    #     # self.y = y  #кордината y начала нашего объекта
+    #     # self.i_font = i_font  #шрифт
+    #     # self.column_width = i_width  #ширина
+    #
+    #     self.org = i_till.get('organization', ' ')  #строка с организацией
+    #     self.shop = i_till.get('shop', ' ')  #строка с названием магазина
+    #     self.date = i_till.get('date', ' ')  #строка с датой
+    #     self.number = i_till.get('number', ' ')  # строка с датой
+    #     self.sales_items = i_till.get('sales_items', 0)  #продажа товаров
+    #     self.revenue = i_till.get('revenue', 0)  #выручка
+    #     self.sales_gift_certificate = i_till.get('sales_gift_certificate', 0)  #продажа подарочных сертификатов
+    #     self.pay_cashless = i_till.get('pay_cashless', 0)  #оплата безналом
+    #     self.pay_cash = i_till.get('pay_cash', 0)  #оплата налом
+    #     self.pay_other_form = i_till.get('refund_other_form', 0)  #сумма обмена, та сумма товара что покупателю отдали мы
+    #     self.pay_sbp = i_till.get('pay_sbp', 0)  #сумма оплаты по СБП
+    #     self.pay_gift_certificate = i_till.get('pay_gift_certificate', 0)  #оплата подарочными сертификатами
+    #     self.refund_cash = i_till.get('refund_cash', 0)  #сумма возврат наличных
+    #     self.refund_cashless = i_till.get('refund_cashless', 0)  #сумма возврат безнала
+    #     self.refund_other_form = i_till.get('refund_other_form', 0)  #сумма обмена, та сумма товара что покупатель принес нам
+    #     self.refund_sbp = i_till.get('refund_sbp', 0)  #возврат по СБП
+    #     #следующие строки будут выводится пустыми, для заполнения вручную кассирами
+    #     self.zp = i_till.get('zp', ' ')  #зарплата
+    #     self.other_expenses = i_till.get('other_expenses', ' ')  #прочий расход
+    #     self.other_parish = i_till.get('other_parish', ' ')  #прочий приход
+    #     self.encashment = i_till.get('encashment', ' ')  #инкассация
+    #     self.remaining_money = i_till.get('remaining_money', ' ')  #остаток денег в кассе
+    #     self.cashier = i_till.get('cashier', ' ')  #кассир
+    def __init__(self):
         """
         param x: int координата х начала нашего объекта
         param y: int кордината y начала нашего объекта
@@ -36,30 +80,76 @@ class Till(object):
         # self.i_font = i_font  #шрифт
         # self.column_width = i_width  #ширина
 
-        self.org = org  #строка с организацией
-        self.shop = shop  #строка с названием магазина
-        self.date = i_date  #строка с датой
-        self.sales_items = i_till.get('sales_items', 0)  #продажа вещей
-        self.revenue = i_till.get('revenue', 0)  #выручка
-        self.sales_gift_certificate = i_till.get('sales_gift_certificate', 0)  #продажа подарочных сертификатов
-        self.pay_cashless = i_till.get('pay_cashless', 0)  #оплата безналом
-        self.pay_cash = i_till.get('pay_cash', 0)  #оплата налом
-        self.pay_other_form = i_till.get('change_sum', 0)  #сумма обмена, та сумма товара что покупателю отдали мы
-        self.pay_sbp = i_till.get('pay_sbp', 0)  #сумма оплаты по СБП
-        self.pay_gift_certificate = i_till.get('pay_gift_certificate', 0)  #оплата подарочными сертификатами
-        self.refund_cash = i_till.get('refund_cash', 0)  #сумма возврат наличных
-        self.refund_cashless = i_till.get('refund_cashless', 0)  #сумма возврат безнала
-        self.refund_other_form = i_till.get('change_sum', 0)  #сумма обмена, та сумма товара что покупатель принес нам
-        self.refund_sbp = i_till.get('refund_sbp', 0)  #возврат по СБП
+        self.org = []
+        self.shop = []
+        self.date = []
+        self.number = []
+        self.sales_items = []
+        self.sales_gift_certificate = []
+        self.revenue = []
+        self.pay_cashless = []
+        self.pay_cash = []
+        self.pay_other_form = []
+        self.pay_sbp = []
+        self.pay_gift_certificate = []
+        self.refund_cash = []
+        self.refund_cashless = []
+        self.refund_sbp = []
+        self.refund_other_form = []
         #следующие строки будут выводится пустыми, для заполнения вручную кассирами
-        self.zp = i_till.get('zp', ' ')  #зарплата
-        self.other_expenses = i_till.get('other_expenses', ' ')  #прочий расход
-        self.other_parish = i_till.get('other_parish', ' ')  #прочий приход
-        self.encashment = i_till.get('encashment', ' ')  #инкассация
-        self.remaining_money = i_till.get('remaining_money', ' ')  #остаток денег в кассе
-        self.cashier = i_till.get('cashier', ' ')  #кассир
+        self.zp = []
+        self.other_expenses = []
+        self.other_parish = []
+        self.encashment = []
+        self.remaining_money = []
+        self.cashier = []
 
-def make_pdf_page(c):
+    def make_list_table_row(self, i_till: dict = {}):
+        self.org.append(i_till.get('organization', ' '))  #строка с организацией
+        self.shop.append(i_till.get('shop', ' '))  #строка с названием магазина
+        self.date.append(i_till.get('date', ' '))  #строка с датой
+        self.number.append(i_till.get('number', ' '))  # строка с датой
+        self.sales_items.append(i_till.get('sales_items', 0))  #продажа товаров
+        self.sales_gift_certificate.append(i_till.get('sales_gift_certificate', 0))  #продажа подарочных сертификатов
+        self.revenue.append(i_till.get('revenue', 0))  # выручка
+        self.pay_cashless.append(i_till.get('pay_cashless', 0))  #оплата безналом
+        self.pay_cash.append(i_till.get('pay_cash', 0))  #оплата налом
+        self.pay_other_form.append(i_till.get('change_other_form', 0))  #сумма обмена, та сумма товара что покупателю отдали мы
+        self.pay_sbp.append(i_till.get('pay_sbp', 0))  #сумма оплаты по СБП
+        self.pay_gift_certificate.append(i_till.get('pay_gift_certificate', 0))  #оплата подарочными сертификатами
+        self.refund_cash.append(i_till.get('refund_cash', 0))  #сумма возврат наличных
+        self.refund_cashless.append(i_till.get('refund_cashless', 0))  #сумма возврат безнала
+        self.refund_other_form.append(i_till.get('refund_other_form', 0))  #сумма обмена, та сумма товара что покупатель принес нам
+        self.refund_sbp.append(i_till.get('refund_sbp', 0))  #возврат по СБП
+        #следующие строки будут выводится пустыми, для заполнения вручную кассирами
+        self.zp.append(i_till.get('zp', ' '))  #зарплата
+        self.other_expenses.append(i_till.get('other_expenses', ' '))  #прочий расход
+        self.other_parish.append(i_till.get('other_parish', ' '))  #прочий приход
+        self.encashment.append(i_till.get('encashment', ' '))  #инкассация
+        self.remaining_money.append(i_till.get('remaining_money', ' '))  #остаток денег в кассе
+        self.cashier.append(i_till.get('cashier', ' '))  #кассир
+
+    def make_data_for_table(self, i_style):
+        """
+        метода составления данных для объекта таблица в репортлаб
+        :param i_style:
+        :return:
+        """
+        o_data = []
+        for attr in self.__dir__():
+            table_row = []
+            if attr.startswith('__') is False:
+                if isinstance(getattr(self, attr), list):
+                    i_list = getattr(self, attr)
+                    print(i_list)
+                    for i_str in i_list:
+                        table_row.append(Paragraph(str(i_str), i_style))
+                    if len(table_row) > 0:
+                        o_data.append(table_row)
+        return o_data
+
+
+def make_pdf_page(c, i_tills):
         """
         функция создания объекта pdf страницы
         :param c: объект pdf
@@ -78,9 +168,25 @@ def make_pdf_page(c):
         c.setFont('Arial', vtext_font_size)
         pole = 15 * mm
         ytext = c_height - vtext_font_size * 1.5
-        vtext = 'Юрлицо'
-        ytext = text_on_page(c, vtext=vtext, vtext_font_size=vtext_font_size, xstart=pole, ystart=c_height - pole,
-                             xfinish=pole + 55 * mm)
+        xstart = pole
+        # the magic is here
+        styles = getSampleStyleSheet()  # дефолтовые стили
+        styles['Normal'].fontName = 'Arial'
+        i_styles = styles['Normal']
+        data = i_tills.make_data_for_table(i_styles)
+        rowHeights = []
+        colWidths = []
+        for _ in range(len(data)):
+            rowHeights.append(6 * mm)
+        for _ in range(len(data[0])):
+            colWidths.append(4.5 * cm)
+        table = Table(data=data, colWidths=colWidths, rowHeights=rowHeights)
+        table.setStyle(TableStyle([('ALIGN', (1, 1), (-2, -2), 'RIGHT'),
+                                ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                                ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                                ]))
+        table.wrapOn(c, c_width, c_height)
+        table.drawOn(c, pole, pole)
         c.save()
 
 
@@ -137,72 +243,30 @@ def print_file(pfile, printer):
     return error_level
 
 
-
-def text_on_page(canvs, vtext: str = 'Test', vtext_font_size: int = 10, xstart: int = 0, ystart: int = 0,
-                 xfinish: int = 170, cross_out:bool = False):
+def make_tills(i_path: str = 'r:\\', i_fname: str = 'hoznuzhdi.json') -> List[Till]:
     """
-    функция размещения текста на нашем объекте pdf
-    :param canvs: obj сам объект pdf
-    :param vtext: str текст который будем размещать
-    если текст не входит в одну строку, то будем делать переносы,
-    поэтому по выходу надо знать на какой высоте объект уже занят
-    :param vtext_font_size: int размер шрифта
-    :param xstart: int стартовая координата X
-    :param ystart: int стартовая координата Y
-    :param xfinish: int финишная координата X
-    :return: int финишная координата Y, на какой высоте остановились
+    получаем список наших обектов-столбцов таблицы
+    :param i_path:
+    :param i_fname:
+    :return:
     """
-    from reportlab.pdfbase.pdfmetrics import stringWidth
-
-    # xstart, ystart start coordinates our text string
-    vtext_result = ''
-    for char in vtext:
-        x_text_print = xstart + stringWidth(vtext_result, 'Arial', vtext_font_size)
-        if x_text_print < xfinish:
-            vtext_result = vtext_result + char
-        else:
-            canvs.drawString(xstart, ystart, vtext_result)
-            if cross_out is True:
-                cross_out_y = ystart + vtext_font_size // 3
-                canvs.line(xstart, cross_out_y, xstart + stringWidth(vtext_result, 'Arial', vtext_font_size), cross_out_y)
-            if char != " ":
-                vtext_result = char
-            else:
-                vtext_result = ""
-            ystart = ystart - vtext_font_size
-    else:
-        canvs.drawString(xstart, ystart, vtext_result)
-        if cross_out is True:
-            cross_out_y = ystart + vtext_font_size // 3
-            canvs.line(xstart, cross_out_y, xstart + stringWidth(vtext_result, 'Arial', vtext_font_size), cross_out_y)
-    return ystart
-
-
-# def make_pdf_page(c, qr_data: str = '99999', vtext: str = 'zaglushka', vtext_price: str = '000000',
-#                   shop: str = 'not shop', sale='00000'):
-def make_list_of_till(i_path: str = 'r:\\', i_fname: str = 'hoznuzhdi.json') -> List[Till]:
-    o_list = []
     with open(i_path+i_fname) as json_file:
         data = json.load(json_file)
     print(data)
+    o_tills = Till()
     for elem in data['till']:
-        if elem['sales_items'] != 0 and elem['change_sum'] != 0:
-            o_list.append(Till(org=data['organization'], shop=data['shop'], i_date=data['date'], i_till=elem))
-    return o_list
-
+        if elem['sales_items'] != 0 and elem['refund_other_form'] != 0:
+            o_tills.make_list_table_row(i_till=elem)
+    return o_tills
 
 
 def main():
     i_path = 'r:\\'
     i_name = 'hoznuzhdi.json'
     del_pdf_in_folder(i_path)
-    list_shop = make_list_of_till(i_path=i_path, i_fname=i_name)
-    print(list_shop)
+    shop_tills = make_tills(i_path=i_path, i_fname=i_name)
     pdf_canvas = canvas.Canvas('r:\\hoznuzhdi.pdf', pagesize=landscape(A4))
-    make_pdf_page(pdf_canvas)
-    # pdf_canvas = canvas.Canvas('r:\\hoznuzhdi.pdf', pagesize=landscape(A4))
-    # pdf_canvas.drawString(100, 100, 'jkjkjkj')
-    # pdf_canvas.save()
+    make_pdf_page(pdf_canvas, shop_tills)
 
 
 error = main()
