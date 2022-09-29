@@ -4,7 +4,6 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.pagesizes import A4, landscape
-from reportlab.lib.units import cm, mm
 from reportlab.platypus import Paragraph, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
@@ -14,7 +13,7 @@ from os.path import isfile
 from os import remove as osrem
 import glob
 import time
-from sys import exit
+from sys import exit, argv
 from typing import List
 
 class Till(object):
@@ -64,22 +63,8 @@ class Till(object):
     #     self.cashier = i_till.get('cashier', ' ')  #кассир
     def __init__(self):
         """
-        param x: int координата х начала нашего объекта
-        param y: int кордината y начала нашего объекта
-        param org: str строка с организацией
-        param i_font: int шрифт текста в нашем объекте
-        param i_width:int ширина объекта
-        param i_date: str дата в текстовом виде, строка
-        param i_till: dict словарь с остальными строками объекта
-        объект кассы будет инициализироваться
-        координатами и строками с данными
+        конструктор класса с нашими данными касс
         """
-        # x: int = 0, y: int = 0, i_font: int = 12, i_width: int = 55,
-        # self.x = x  #кордината x начала нашего объекта
-        # self.y = y  #кордината y начала нашего объекта
-        # self.i_font = i_font  #шрифт
-        # self.column_width = i_width  #ширина
-
         self.org = []
         self.shop = []
         self.date = []
@@ -105,6 +90,11 @@ class Till(object):
         self.cashier = []
 
     def make_list_table_row(self, i_till: dict = {}):
+        """
+        метод наполнения нашего объекта данными
+        :param i_till:
+        :return:
+        """
         self.org.append(i_till.get('organization', ' '))  #строка с организацией
         self.shop.append(i_till.get('shop', ' '))  #строка с названием магазина
         self.date.append(i_till.get('date', ' '))  #строка с датой
@@ -141,7 +131,6 @@ class Till(object):
             if attr.startswith('__') is False:
                 if isinstance(getattr(self, attr), list):
                     i_list = getattr(self, attr)
-                    print(i_list)
                     for i_str in i_list:
                         table_row.append(Paragraph(str(i_str), i_style))
                     if len(table_row) > 0:
@@ -151,76 +140,55 @@ class Till(object):
 
 def make_pdf_page(c, i_tills):
         """
-        функция создания объекта pdf страницы
+        функция создания объекта pdf страницы с таблицей данных
         :param c: объект pdf
-        :param qr_data: str строка c QR кодом
-        :param vtext: str строка с текстом на ценнике
-        :param vtext_price: str строка с ценой
-        :param shop: str строка с названием магазина
-        cross_out: bool флаг зачернутый текст будет или нет
+        :param i_tills: объект с данными которые перенесем в тиблицу
         :return: file
         """
         pdfmetrics.registerFont(TTFont('Arial', 'Arial.ttf'))
         pdfmetrics.registerFont(TTFont('ArialBold', 'arialbd.ttf'))
         c_width = c.__dict__['_pagesize'][0]
         c_height = c.__dict__['_pagesize'][1]
-        vtext_font_size = 12
-        c.setFont('Arial', vtext_font_size)
-        pole = 15 * mm
-        ytext = c_height - vtext_font_size * 1.5
-        xstart = pole
+        font_size = 10
+        font_size = font_size
+        row_h = font_size + 2
+        column_w = font_size * 12
         # the magic is here
         styles = getSampleStyleSheet()  # дефолтовые стили
         styles['Normal'].fontName = 'Arial'
+        styles['Normal'].fontSize = font_size
+        styles['Normal'].leading = font_size - 1  # смещение текста вверх-вниз внутри параграфа
         i_styles = styles['Normal']
-        data = i_tills.make_data_for_table(i_styles)
-        rowHeights = []
-        colWidths = []
+        data = i_tills.make_data_for_table(i_styles)  # список списков со значениями ячеек таблицы и их стилями
+        rowHeights = []  # список строк с высотой
+        colWidths = []  # список столбцов с шириной
         for _ in range(len(data)):
-            rowHeights.append(6 * mm)
+            rowHeights.append(row_h)
         for _ in range(len(data[0])):
-            colWidths.append(4.5 * cm)
+            colWidths.append(column_w)
         table = Table(data=data, colWidths=colWidths, rowHeights=rowHeights)
-        table.setStyle(TableStyle([('ALIGN', (1, 1), (-2, -2), 'RIGHT'),
-                                ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
-                                ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+        table.setStyle(TableStyle([
+                                ('ALIGN', (1, 1), (-2, -2), 'RIGHT'),  # это выравнивание внутри ячейки
+                                ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),  # это внутренняя решетка
+                                ('BOX', (0, 0), (-1, -1), 0.25, colors.black),  # это внешние рамки таблицы
                                 ]))
         table.wrapOn(c, c_width, c_height)
-        table.drawOn(c, pole, pole)
+        # table_w = column_w * len(colWidths)  # ширина таблицы
+        table_h = row_h * len(rowHeights)  # высота таблицы
+        table.drawOn(c, font_size, c_height - table_h - font_size * 2)
+        table.drawOn(c, font_size, c_height - (table_h + font_size) * 2 - font_size)
         c.save()
 
 
-def del_pdf_in_folder(i_path_pdf):
-    """
-    функция очистки папки от использованых pdf
-    :param i_path_pdf: str путь до папки в котрой лежaт pdf
-    :return:
-    """
-    file_queue = [f for f in glob.glob(i_path_pdf + "*.pdf") if isfile(f)]
-    if len(file_queue) > 0:
-        for i in file_queue:
-            osrem(i)
-
-
-def sendtoprinter():
+def sendtoprinter(i_path: str = 'd:\\files\\', i_fname: str = "hoznuzhdi.pdf"):
     """
     функция отправки на печать pdf файлов из папки
     :return:
     """
     old_printer = win32print.GetDefaultPrinter()
-    new_printer = win32print.SetDefaultPrinter('Honeywell PC42t plus (203 dpi)')
-    # file_queue = [f for f in glob.glob("%s\\*.pdf" % source_path) if isfile(f)]
-    file_queue = [f for f in glob.glob("d:\\files\\*.pdf") if isfile(f)]
-    if len(file_queue) > 0:
-        for i in file_queue:
-            if i.find('99999999999999999999999999999999') == -1:
-                error_level = print_file(i, new_printer)
-                print(i)
-    time.sleep(15)
-    # if len(file_queue) > 0:
-    #     for i in file_queue:
-    #         osrem(i)
-    win32print.SetDefaultPrinter(old_printer)
+    i_file = i_path + i_fname
+    error_level = print_file(i_file, old_printer)
+    time.sleep(5)
     return error_level
 
 
@@ -243,16 +211,15 @@ def print_file(pfile, printer):
     return error_level
 
 
-def make_tills(i_path: str = 'r:\\', i_fname: str = 'hoznuzhdi.json') -> List[Till]:
+def make_tills(i_path: str = 'r:\\', i_fname: str = 'hoznuzhdi.json') -> Till:
     """
     получаем список наших обектов-столбцов таблицы
     :param i_path:
     :param i_fname:
-    :return:
+    :return: Till()
     """
     with open(i_path+i_fname) as json_file:
         data = json.load(json_file)
-    print(data)
     o_tills = Till()
     for elem in data['till']:
         if elem['sales_items'] != 0 and elem['refund_other_form'] != 0:
@@ -260,14 +227,22 @@ def make_tills(i_path: str = 'r:\\', i_fname: str = 'hoznuzhdi.json') -> List[Ti
     return o_tills
 
 
-def main():
-    i_path = 'r:\\'
-    i_name = 'hoznuzhdi.json'
-    del_pdf_in_folder(i_path)
+def main(i_path: str = 'r:\\', i_name: str = 'hoznuzhdi.json'):
+    """
+    скрипт формирования и печати pdf файлов с кассовым отчетом
+    :param i_path:
+    :param i_name:
+    :return:
+    """
+    i_pdf_file = 'hoznuzhdi.pdf'
+    print(i_path)
+    print(i_name)
+    print(i_pdf_file)
     shop_tills = make_tills(i_path=i_path, i_fname=i_name)
-    pdf_canvas = canvas.Canvas('r:\\hoznuzhdi.pdf', pagesize=landscape(A4))
+    pdf_canvas = canvas.Canvas(i_path + i_pdf_file, pagesize=landscape(A4))
     make_pdf_page(pdf_canvas, shop_tills)
+    sendtoprinter(i_path=i_path, i_fname=i_pdf_file)
 
 
-error = main()
+error = main(argv[1], argv[2])
 exit(error)
