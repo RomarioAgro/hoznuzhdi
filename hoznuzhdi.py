@@ -223,8 +223,7 @@ def make_tills(i_path: str = 'r:\\', i_fname: str = 'hoznuzhdi.json') -> Till:
         data = json.load(json_file)
     o_tills = Till()
     for elem in data['till']:
-        if elem['sales_items'] != 0 and elem['refund_other_form'] != 0:
-            o_tills.make_list_table_row(i_till=elem)
+        o_tills.make_list_table_row(i_till=elem)
     return o_tills
 
 
