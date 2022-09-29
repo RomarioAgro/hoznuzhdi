@@ -166,6 +166,7 @@ def make_pdf_page(c, i_tills):
             rowHeights.append(row_h)
         for _ in range(len(data[0])):
             colWidths.append(column_w)
+        #     создание объекта таблица
         table = Table(data=data, colWidths=colWidths, rowHeights=rowHeights)
         table.setStyle(TableStyle([
                                 ('ALIGN', (1, 1), (-2, -2), 'RIGHT'),  # это выравнивание внутри ячейки
