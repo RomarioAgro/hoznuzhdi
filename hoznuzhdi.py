@@ -10,7 +10,7 @@ from reportlab.lib import colors
 import win32print
 import win32api
 from os.path import isfile
-from os import remove as osrem
+from os import startfile
 import glob
 import time
 from sys import exit, argv
@@ -158,15 +158,23 @@ def make_pdf_page(c, i_tills):
         styles['Normal'].fontName = 'Arial'
         styles['Normal'].fontSize = font_size
         styles['Normal'].leading = font_size - 1  # смещение текста вверх-вниз внутри параграфа
+        styles['Normal'].splitLongWords = 1
         i_styles = styles['Normal']
         data = i_tills.make_data_for_table(i_styles)  # список списков со значениями ячеек таблицы и их стилями
         rowHeights = []  # список строк с высотой
         colWidths = []  # список столбцов с шириной
         for _ in range(len(data)):
-            rowHeights.append(row_h)
+            if _ == 1:
+                rowHeights.append(row_h * 2)
+            else:
+                rowHeights.append(row_h)
         for _ in range(len(data[0])):
-            colWidths.append(column_w)
+            if _ == 0:
+                colWidths.append(column_w)
+            else:
+                colWidths.append(None)
         #     создание объекта таблица
+
         table = Table(data=data, colWidths=colWidths, rowHeights=rowHeights)
         table.setStyle(TableStyle([
                                 ('ALIGN', (1, 1), (-2, -2), 'RIGHT'),  # это выравнивание внутри ячейки
@@ -175,7 +183,7 @@ def make_pdf_page(c, i_tills):
                                 ]))
         table.wrapOn(c, c_width, c_height)
         # table_w = column_w * len(colWidths)  # ширина таблицы
-        table_h = row_h * len(rowHeights)  # высота таблицы
+        table_h = sum(rowHeights)  # высота таблицы
         table.drawOn(c, font_size, c_height - table_h - font_size * 2)
         table.drawOn(c, font_size, c_height - (table_h + font_size) * 2 - font_size)
         c.save()
@@ -235,12 +243,13 @@ def main(i_path: str = 'r:\\', i_name: str = 'hoznuzhdi.json'):
     :return:
     """
     i_pdf_file = 'hoznuzhdi.pdf'
-    print(i_path)
-    print(i_name)
-    print(i_pdf_file)
+    # print(i_path)
+    # print(i_name)
+    # print(i_pdf_file)
     shop_tills = make_tills(i_path=i_path, i_fname=i_name)
     pdf_canvas = canvas.Canvas(i_path + i_pdf_file, pagesize=landscape(A4))
     make_pdf_page(pdf_canvas, shop_tills)
+    # startfile(i_path + i_pdf_file)
     sendtoprinter(i_path=i_path, i_fname=i_pdf_file)
 
 
