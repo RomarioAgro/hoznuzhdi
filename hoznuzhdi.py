@@ -249,8 +249,10 @@ def main(i_path: str = 'r:\\', i_name: str = 'hoznuzhdi.json'):
     shop_tills = make_tills(i_path=i_path, i_fname=i_name)
     pdf_canvas = canvas.Canvas(i_path + i_pdf_file, pagesize=landscape(A4))
     make_pdf_page(pdf_canvas, shop_tills)
-    # startfile(i_path + i_pdf_file)
+    startfile(i_path + i_pdf_file)
     sendtoprinter(i_path=i_path, i_fname=i_pdf_file)
+
+
 
 
 error = main(argv[1], argv[2])
