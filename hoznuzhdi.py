@@ -76,10 +76,12 @@ class Till(object):
         self.pay_cash = []
         self.pay_other_form = []
         self.pay_sbp = []
+        self.pay_podeli = []
         self.pay_gift_certificate = []
         self.refund_cash = []
         self.refund_cashless = []
         self.refund_sbp = []
+        self.refund_podeli = []
         self.refund_other_form = []
         #следующие строки будут выводится пустыми, для заполнения вручную кассирами
         self.zp = []
@@ -106,11 +108,13 @@ class Till(object):
         self.pay_cash.append(i_till.get('pay_cash', 0))  #оплата налом
         self.pay_other_form.append(i_till.get('change_other_form', 0))  #сумма обмена, та сумма товара что покупателю отдали мы
         self.pay_sbp.append(i_till.get('pay_sbp', 0))  #сумма оплаты по СБП
+        self.pay_podeli.append(i_till.get('pay_podeli', 0))  # сумма оплаты по подели
         self.pay_gift_certificate.append(i_till.get('pay_gift_certificate', 0))  #оплата подарочными сертификатами
         self.refund_cash.append(i_till.get('refund_cash', 0))  #сумма возврат наличных
         self.refund_cashless.append(i_till.get('refund_cashless', 0))  #сумма возврат безнала
         self.refund_other_form.append(i_till.get('refund_other_form', 0))  #сумма обмена, та сумма товара что покупатель принес нам
         self.refund_sbp.append(i_till.get('refund_sbp', 0))  #возврат по СБП
+        self.refund_podeli.append(i_till.get('refund_podeli', 0))  # возврат по подели
         #следующие строки будут выводится пустыми, для заполнения вручную кассирами
         self.zp.append(i_till.get('zp', ' '))  #зарплата
         self.other_expenses.append(i_till.get('other_expenses', ' '))  #прочий расход
@@ -149,10 +153,12 @@ def make_pdf_page(c, i_tills):
         pdfmetrics.registerFont(TTFont('ArialBold', 'arialbd.ttf'))
         c_width = c.__dict__['_pagesize'][0]
         c_height = c.__dict__['_pagesize'][1]
-        font_size = 10
+        font_size = 9
         font_size = font_size
         row_h = font_size + 2
         column_w = font_size * 12
+
+        # stringWidth(vtext_result, 'Arial', vtext_font_size)  #  умеет считать ширину текста
         # the magic is here
         styles = getSampleStyleSheet()  # дефолтовые стили
         styles['Normal'].fontName = 'Arial'
